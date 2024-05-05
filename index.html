@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sound Test</title>
+    <!-- Materialize CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <style>
+        /* Custom CSS for beta label */
+        .beta-label {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 1rem; /* Larger font size */
+            color: #666;
+            opacity: 0.6;
+            user-select: none; /* Disable text selection */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="header" id="soundTestTitle">サウンドテスト</h1>
+        
+        <!-- 音源選択プルダウンメニュー -->
+        <div class="input-field">
+            <select id="audioSourceSelect">
+                <option value="https://github.com/PCManagerplus/media.web/raw/main/new-happy-corporate-long-10713.mp3" selected>Test Sound 1</option>
+                <option value="https://github.com/PCManagerplus/media.web/raw/main/happy-happiness-corporate-main-203857.mp3">Test Sound 2</option>
+                <option value="audio/test_sound3.mp3">今後、追加予定</option>
+            </select>
+            <label>音源</label>
+        </div>
+
+        <!-- 音声出力デバイス選択プルダウンメニュー -->
+        <div class="input-field">
+            <select id="audioOutputSelect">
+                <!-- Options will be populated dynamically using JavaScript -->
+            </select>
+            <label>音声出力デバイス</label>
+        </div>
+
+        <!-- 音源提供元のボタン -->
+        <a class="waves-effect waves-light btn modal-trigger" href="#sourceProviderModal">音源提供元</a>
+        
+        <!-- テスト用の音声ファイル -->
+        <audio controls id="audioPlayer">
+            <source src="https://github.com/PCManagerplus/media.web/raw/main/new-happy-corporate-long-10713.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+    </div>
+
+    <!-- Materialize JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Materialize form select elements
+            var elems = document.querySelectorAll('select');
+            var instances = M.FormSelect.init(elems);
+
+            // Populate audio output device dropdown menu
+            navigator.mediaDevices.enumerateDevices()
+                .then(devices => {
+                    const audioOutputSelect = document.getElementById('audioOutputSelect');
+                    devices.forEach(device => {
+                        if (device.kind === 'audiooutput') {
+                            const option = document.createElement('option');
+                            option.value = device.deviceId;
+                            option.text = device.label || `Speaker ${audioOutputSelect.options.length + 1}`;
+                            audioOutputSelect.appendChild(option);
+                        }
+                    });
+                    M.FormSelect.init(audioOutputSelect); // Reinitialize to reflect changes
+                })
+                .catch(err => {
+                    console.error('Error enumerating audio output devices:', err);
+                });
+
+            // Change audio output device when selected
+            document.getElementById('audioOutputSelect').addEventListener('change', event => {
+                const audio = document.getElementById('audioPlayer');
+                const selectedOutputDeviceId = event.target.value;
+                audio.setSinkId(selectedOutputDeviceId)
+                    .then(() => {
+                        console.log('Audio output device set successfully');
+                    })
+                    .catch(err => {
+                        console.error('Error setting audio output device:', err);
+                    });
+            });
+
+            // Change audio source when selected
+            document.getElementById('audioSourceSelect').addEventListener('change', event => {
+                const audio = document.getElementById('audioPlayer');
+                const selectedOption = event.target.value;
+                audio.src = selectedOption; // Set selected audio source
+                audio.play(); // Play the audio
+            });
+
+            // Initialize modal trigger
+            var modalElems = document.querySelectorAll('.modal');
+            var modalInstances = M.Modal.init(modalElems);
+
+            // Beta label click counter
+            var betaLabelClicks = 0;
+            var betaLabel = document.querySelector('.beta-label');
+            betaLabel.addEventListener('click', function() {
+                betaLabelClicks++;
+                if (betaLabelClicks >= 7) {
+                    // Show dialog when clicked 7 times
+                    M.Modal.getInstance(document.getElementById('betaDialogModal')).open();
+                    // Reset click counter
+                    betaLabelClicks = 0;
+                }
+            });
+
+            // Sound test title click counter
+            var soundTestTitleClicks = 0;
+            var soundTestTitle = document.getElementById('soundTestTitle');
+            soundTestTitle.addEventListener('click', function() {
+                soundTestTitleClicks++;
+                switch(soundTestTitleClicks) {
+                    case 4:
+                        M.toast({html: 'バージョン確認方法であと3回タップ'});
+                        break;
+                    case 5:
+                        M.toast({html: 'バージョン確認方法であと2回タップ'});
+                        break;
+                    case 6:
+                        M.toast({html: 'バージョン確認方法であと1回タップ'});
+                        break;
+                    case 7:
+                        M.Modal.getInstance(document.getElementById('betaDialogModal2')).open();
+                        soundTestTitleClicks = 0; // Reset click counter
+                        break;
+                    default:
+                        break;
+                }
+            });
+        });
+    </script>
+
+    <!-- Source Provider Modal -->
+    <div id="sourceProviderModal" class="modal">
+        <div class="modal-content">
+            <h4>音源提供元</h4>
+            <a href="https://pixabay.com/ja/users/good_b_music-22836301/" target="_blank">good_b_musicのプロフィールへ</a>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-close waves-effect waves-green btn-flat">閉じる</a>
+        </div>
+    </div>
+
+  <!-- Beta Dialog Modal -->
+  <div id="betaDialogModal" class="modal">
+      <div class="modal-content">
+          <h4>バージョン情報</h4>
+          <p>現在のバージョン</p>
+          <p>1.0.0(beta)</p>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-close waves-effect waves-green btn-flat">閉じる</a>
+        </div>
+    </div>
+
+    <!-- Beta Dialog Modal 2 -->
+    <div id="betaDialogModal2" class="modal">
+        <div class="modal-content">
+            <h4>バージョン確認方法</h4>
+            <p>方法は、ベータ版の文字を7回タップすると…</p>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-close waves-effect waves-green btn-flat">閉じる</a>
+        </div>
+    </div>
+
+    <!-- Beta label -->
+    <div class="beta-label">ベータ版</div>
+</body>
+</html>
